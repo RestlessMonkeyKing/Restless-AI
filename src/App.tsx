@@ -59,15 +59,43 @@ function App() {
                 <h1 className="font-bold text-lg tracking-tight text-gray-900 leading-none flex items-center gap-1">
                   RestlessMonkey <span className="text-orange-500">King</span> AI
                 </h1>
-                {models.length > 0 && (
-                  <div className="mt-0.5 sm:hidden">
-                    <ModelSelector models={models} selectedModelId={selectedModel} onSelect={setSelectedModel} />
+                <div className="flex items-center gap-1 mt-0.5">
+                  {models.find(m => m.id === selectedModel)?.recommendedFor?.includes(mode) && (
+                    <span className={`text-[8px] px-1 py-0 rounded-full font-bold uppercase tracking-tighter shadow-sm border ${
+                      mode === 'math' ? 'bg-blue-500 text-white border-blue-600' :
+                      mode === 'coding' ? 'bg-emerald-500 text-white border-emerald-600' :
+                      'bg-purple-500 text-white border-purple-600'
+                    }`}>
+                      Recommended
+                    </span>
+                  )}
+                  <div className="sm:hidden">
+                    <ModelSelector 
+                      models={models} 
+                      selectedModelId={selectedModel} 
+                      onSelect={setSelectedModel} 
+                      currentMode={mode}
+                    />
                   </div>
-                )}
+                </div>
               </div>
               {models.length > 0 && (
-                <div className="hidden sm:block ml-2">
-                  <ModelSelector models={models} selectedModelId={selectedModel} onSelect={setSelectedModel} />
+                <div className="hidden sm:flex items-center gap-2 ml-2">
+                  {models.find(m => m.id === selectedModel)?.recommendedFor?.includes(mode) && (
+                    <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-tighter shadow-sm border ${
+                      mode === 'math' ? 'bg-blue-500 text-white border-blue-600' :
+                      mode === 'coding' ? 'bg-emerald-500 text-white border-emerald-600' :
+                      'bg-purple-500 text-white border-purple-600'
+                    }`}>
+                      Recommended
+                    </span>
+                  )}
+                  <ModelSelector 
+                    models={models} 
+                    selectedModelId={selectedModel} 
+                    onSelect={setSelectedModel} 
+                    currentMode={mode}
+                  />
                 </div>
               )}
             </div>

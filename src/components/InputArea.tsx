@@ -64,7 +64,17 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isReady
     span.className = 'inline-block mx-0.5 select-none align-middle text-orange-600 font-medium bg-orange-50 rounded px-0.5';
     span.setAttribute('data-latex', symbol);
     try {
-      span.innerHTML = katex.renderToString(symbol, { throwOnError: false });
+      let renderSymbol = symbol;
+      // Handle standalone superscripts/subscripts for visual rendering
+      if (symbol.startsWith('^') || symbol.startsWith('_')) {
+        renderSymbol = `\\text{}${symbol}`;
+      }
+      const html = katex.renderToString(renderSymbol, { throwOnError: false });
+      if (html.includes('katex-error')) {
+        span.textContent = symbol;
+      } else {
+        span.innerHTML = html;
+      }
     } catch (e) {
       span.textContent = symbol;
     }

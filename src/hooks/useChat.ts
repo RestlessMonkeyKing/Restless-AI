@@ -31,7 +31,19 @@ export function useChat(): UseChatReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [models, setModels] = useState<Model[]>(PRESET_MODELS);
-  const [selectedModel, setSelectedModel] = useState<string>('gpt-4o-mini');
+  const [selectedModel, setSelectedModelInternal] = useState<string>('gpt-4o-mini');
+
+  const setSelectedModel = (modelId: string) => {
+    setSelectedModelInternal(modelId);
+    updateCurrentSession({ modelId });
+  };
+
+  // Sync selectedModel when switching sessions
+  useEffect(() => {
+    if (currentSession?.modelId) {
+      setSelectedModelInternal(currentSession.modelId);
+    }
+  }, [currentSessionId]);
   const isStreamingRef = useRef(false);
 
   // Load sessions from localStorage
@@ -71,18 +83,29 @@ export function useChat(): UseChatReturn {
     
     if (recentOfMode && recentOfMode.messages.length > 0) {
       setCurrentSessionId(recentOfMode.id);
+      // Also update selected model if the session has one
+      if (recentOfMode.modelId) {
+        setSelectedModel(recentOfMode.modelId);
+      }
     } else {
-      createNewSession(newMode);
+      // Auto-select best model for the mode
+      let bestModel = selectedModel;
+      if (newMode === 'math') bestModel = 'openai/gpt-5.2';
+      else if (newMode === 'coding') bestModel = 'anthropic/claude-3-7-sonnet';
+      else if (newMode === 'playground') bestModel = 'openai/gpt-4o-mini';
+      
+      setSelectedModel(bestModel);
+      createNewSession(newMode, bestModel);
     }
   };
 
-  const createNewSession = (newMode: ChatMode = 'math') => {
+  const createNewSession = (newMode: ChatMode = 'math', modelId?: string) => {
     const newSession: ChatSession = {
       id: crypto.randomUUID(),
       title: 'New Chat',
       messages: [],
       mode: newMode,
-      modelId: selectedModel,
+      modelId: modelId || selectedModel,
       updatedAt: Date.now()
     };
     setSessions(prev => [newSession, ...prev]);

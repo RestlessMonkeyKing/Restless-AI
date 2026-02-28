@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Code, Gamepad2, Calculator, X, ChevronRight, MessageSquare, Trash2 } from 'lucide-react';
+import { Code, Gamepad2, Calculator, X, ChevronRight, MessageSquare, Trash2, Sparkles } from 'lucide-react';
 import { ChatMode } from '../hooks/useChat';
 import { ChatSession } from '../types';
 
@@ -127,10 +127,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        <div className="p-6 border-t border-gray-100 bg-gray-50/50">
-          <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm">
-            <p className="text-xs font-medium text-gray-500 mb-1">Current Mode</p>
-            <p className="text-sm font-bold text-gray-900 capitalize">{currentMode}</p>
+        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+          <div className="p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Sparkles size={12} className="text-orange-500" />
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Model Insights</p>
+            </div>
+            {currentMode === 'math' && (
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-blue-600 flex items-center gap-1">
+                  <Calculator size={10} /> GPT-5.2
+                </p>
+                <p className="text-[10px] text-gray-500 leading-tight">
+                  Best for complex reasoning and LaTeX proofs.
+                </p>
+              </div>
+            )}
+            {currentMode === 'coding' && (
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
+                  <Code size={10} /> Claude 3.7
+                </p>
+                <p className="text-[10px] text-gray-500 leading-tight">
+                  Gold standard for precise syntax and architecture.
+                </p>
+              </div>
+            )}
+            {currentMode === 'playground' && (
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-purple-600 flex items-center gap-1">
+                  <Gamepad2 size={10} /> GPT-4o Mini
+                </p>
+                <p className="text-[10px] text-gray-500 leading-tight">
+                  Ultra-fast and creative for casual brainstorming.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </motion.aside>

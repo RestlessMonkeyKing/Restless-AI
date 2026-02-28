@@ -7,11 +7,12 @@ interface ModelSelectorProps {
   models: Model[];
   selectedModelId: string;
   onSelect: (modelId: string) => void;
+  currentMode?: 'math' | 'coding' | 'playground';
 }
 
 type SortOption = 'name-asc' | 'name-desc' | 'provider-asc';
 
-export const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedModelId, onSelect }) => {
+export const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedModelId, onSelect, currentMode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('name-asc');
@@ -93,7 +94,18 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedMo
           <Cpu size={12} />
         </div>
         <div className="flex flex-col items-start leading-none">
-          <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{selectedModel.provider}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{selectedModel.provider}</span>
+            {selectedModel.costPer1k && (
+              <span className={`text-[9px] font-bold ${
+                selectedModel.costPer1k < 0.001 ? 'text-emerald-500' :
+                selectedModel.costPer1k < 0.01 ? 'text-orange-500' :
+                'text-red-500'
+              }`}>
+                ${(selectedModel.costPer1k * 100).toFixed(2)}/100
+              </span>
+            )}
+          </div>
           <span className="text-xs font-medium text-gray-700 max-w-[120px] sm:max-w-[160px] truncate">
             {selectedModel.name}
           </span>
@@ -180,7 +192,46 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedMo
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
                           {model.provider}
                         </span>
+                        {model.recommendedFor?.includes('math') && (
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full border flex items-center gap-0.5 font-bold uppercase tracking-tighter ${
+                            currentMode === 'math' 
+                              ? 'bg-blue-500 text-white border-blue-600 shadow-sm' 
+                              : 'bg-blue-50 text-blue-600 border-blue-200'
+                          }`}>
+                            Math
+                          </span>
+                        )}
+                        {model.recommendedFor?.includes('coding') && (
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full border flex items-center gap-0.5 font-bold uppercase tracking-tighter ${
+                            currentMode === 'coding' 
+                              ? 'bg-emerald-500 text-white border-emerald-600 shadow-sm' 
+                              : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                          }`}>
+                            Code
+                          </span>
+                        )}
+                        {model.recommendedFor?.includes('playground') && (
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full border flex items-center gap-0.5 font-bold uppercase tracking-tighter ${
+                            currentMode === 'playground' 
+                              ? 'bg-purple-500 text-white border-purple-600 shadow-sm' 
+                              : 'bg-purple-50 text-purple-600 border-purple-200'
+                          }`}>
+                            Chat
+                          </span>
+                        )}
                       </div>
+                      {model.costPer1k && (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] text-gray-400 font-medium">
+                            Est. <span className="text-gray-600">${(model.costPer1k * 100).toFixed(2)}</span> per 100 queries
+                          </span>
+                          <div className={`w-1 h-1 rounded-full ${
+                            model.costPer1k < 0.001 ? 'bg-emerald-400' :
+                            model.costPer1k < 0.01 ? 'bg-orange-400' :
+                            'bg-red-400'
+                          }`} />
+                        </div>
+                      )}
                     </div>
                     {selectedModelId === model.id && (
                       <Check size={16} className="text-orange-500 flex-shrink-0 ml-2" />
