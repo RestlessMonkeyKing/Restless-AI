@@ -6,14 +6,16 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import katex from 'katex';
 import { MathKeyboard, SYMBOLS } from './MathKeyboard';
+import { ChatMode } from '../hooks/useChat';
 
 interface InputAreaProps {
   onSend: (content: string) => void;
   isLoading: boolean;
   isReady: boolean;
+  mode: ChatMode;
 }
 
-export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isReady }) => {
+export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isReady, mode }) => {
   const [showMath, setShowMath] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const [isEmpty, setIsEmpty] = useState(true);
@@ -73,6 +75,8 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isReady
     if (!editorRef.current) return;
     
     setIsEmpty(editorRef.current.textContent?.trim() === '');
+
+    if (mode !== 'math') return;
 
     // Auto-convert LaTeX patterns (e.g., "\alpha " -> α)
     const selection = window.getSelection();
@@ -201,19 +205,21 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isReady
             </div>
             
             <div className="flex gap-1 mb-0.5">
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setShowMath(!showMath)}
-                className={`p-2.5 rounded-full transition-all duration-200 ${
-                  showMath 
-                    ? 'bg-orange-100 text-orange-600' 
-                    : 'bg-transparent text-gray-400 hover:bg-gray-200/50 hover:text-gray-600'
-                }`}
-                title="Math Keyboard"
-                type="button"
-              >
-                {showMath ? <X size={18} /> : <Calculator size={18} />}
-              </motion.button>
+              {mode === 'math' && (
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShowMath(!showMath)}
+                  className={`p-2.5 rounded-full transition-all duration-200 ${
+                    showMath 
+                      ? 'bg-orange-100 text-orange-600' 
+                      : 'bg-transparent text-gray-400 hover:bg-gray-200/50 hover:text-gray-600'
+                  }`}
+                  title="Math Keyboard"
+                  type="button"
+                >
+                  {showMath ? <X size={18} /> : <Calculator size={18} />}
+                </motion.button>
+              )}
 
               <motion.button
                 whileTap={{ scale: 0.9 }}

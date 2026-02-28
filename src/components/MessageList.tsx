@@ -5,13 +5,16 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { TypingIndicator } from './TypingIndicator';
+import { CodeBlock } from './CodeBlock';
+import { ChatMode } from '../hooks/useChat';
 
 interface MessageListProps {
   messages: ChatMessage[];
   isLoading: boolean;
+  mode: ChatMode;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, mode }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,21 +39,33 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading })
                   : 'bg-white text-gray-900 border border-gray-100 rounded-bl-sm'
               }`}
             >
-              {msg.role === 'assistant' ? (
-                msg.content ? (
-                  <div className="markdown-body prose prose-sm max-w-none prose-p:leading-relaxed prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-100 prose-a:text-orange-500 hover:prose-a:text-orange-600">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkMath]}
-                      rehypePlugins={[rehypeKatex]}
-                    >
-                      {msg.content as string}
-                    </ReactMarkdown>
-                  </div>
-                ) : (
-                  <TypingIndicator />
-                )
+              {msg.content ? (
+                <div className={`markdown-body prose prose-sm max-w-none prose-p:leading-relaxed prose-pre:bg-transparent prose-pre:p-0 prose-pre:border-none prose-a:text-orange-500 hover:prose-a:text-orange-600 ${msg.role === 'user' ? 'prose-invert' : ''}`}>
+                  <ReactMarkdown
+                    remarkPlugins={mode === 'math' ? [remarkMath] : []}
+                    rehypePlugins={mode === 'math' ? [rehypeKatex] : []}
+                    components={{
+                      code({ node, inline, className, children, ...props }: any) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        return !inline && match ? (
+                          <CodeBlock
+                            language={match[1]}
+                            value={String(children).replace(/\n$/, '')}
+                            canRun={mode === 'coding'}
+                          />
+                        ) : (
+                          <code className={className} {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
+                    }}
+                  >
+                    {msg.content as string}
+                  </ReactMarkdown>
+                </div>
               ) : (
-                <div>{msg.content as string}</div>
+                msg.role === 'assistant' && <TypingIndicator />
               )}
             </div>
           </motion.div>

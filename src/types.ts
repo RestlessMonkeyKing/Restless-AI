@@ -1,6 +1,15 @@
 // Type definitions for Puter.js
 // Based on the provided documentation
 
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  mode: 'coding' | 'playground' | 'math';
+  modelId: string;
+  updatedAt: number;
+}
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string | ContentObject[];

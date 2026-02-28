@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Search, Check, Cpu, Info } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { ChevronDown, Search, Check, Cpu, Filter, SortAsc, SortDesc } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Model } from '../data/models';
 
@@ -9,13 +9,24 @@ interface ModelSelectorProps {
   onSelect: (modelId: string) => void;
 }
 
+type SortOption = 'name-asc' | 'name-desc' | 'provider-asc';
+
 export const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedModelId, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('name-asc');
+  const [providerFilter, setProviderFilter] = useState<string>('all');
+  
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const selectedModel = models.find(m => m.id === selectedModelId) || { id: selectedModelId, name: selectedModelId, provider: 'Unknown' };
+
+  // Get unique providers for filter
+  const providers = useMemo(() => {
+    const p = new Set(models.map(m => m.provider));
+    return ['all', ...Array.from(p)].sort();
+  }, [models]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -38,11 +49,31 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedMo
     }
   }, [isOpen]);
 
-  const filteredModels = models.filter(model => 
-    model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    model.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    model.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const processedModels = useMemo(() => {
+    let result = models.filter(model => {
+      const matchesSearch = model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          model.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          model.id.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesProvider = providerFilter === 'all' || model.provider === providerFilter;
+      
+      return matchesSearch && matchesProvider;
+    });
+
+    // Sort
+    result.sort((a, b) => {
+      if (sortBy === 'name-asc') return a.name.localeCompare(b.name);
+      if (sortBy === 'name-desc') return b.name.localeCompare(a.name);
+      if (sortBy === 'provider-asc') {
+        const providerComp = a.provider.localeCompare(b.provider);
+        if (providerComp !== 0) return providerComp;
+        return a.name.localeCompare(b.name);
+      }
+      return 0;
+    });
+
+    return result;
+  }, [models, searchQuery, sortBy, providerFilter]);
 
   if (models.length === 0) return null;
 
@@ -80,10 +111,10 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedMo
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute top-full left-0 mt-2 w-[320px] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 origin-top-left"
+            className="absolute top-full left-0 mt-2 w-[340px] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 origin-top-left flex flex-col"
           >
             {/* Search Header */}
-            <div className="p-3 border-b border-gray-100 bg-gray-50/50">
+            <div className="p-3 border-b border-gray-100 bg-gray-50/50 space-y-2">
               <div className="relative">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -95,12 +126,40 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedMo
                   className="w-full pl-8 pr-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all placeholder:text-gray-400"
                 />
               </div>
+              
+              <div className="flex items-center gap-2">
+                <div className="flex-1 flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1">
+                  <Filter size={12} className="text-gray-400" />
+                  <select 
+                    value={providerFilter}
+                    onChange={(e) => setProviderFilter(e.target.value)}
+                    className="text-[11px] bg-transparent border-none focus:ring-0 w-full p-0 text-gray-600 cursor-pointer"
+                  >
+                    {providers.map(p => (
+                      <option key={p} value={p}>{p === 'all' ? 'All Providers' : p}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1">
+                  {sortBy === 'name-desc' ? <SortDesc size={12} className="text-gray-400" /> : <SortAsc size={12} className="text-gray-400" />}
+                  <select 
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                    className="text-[11px] bg-transparent border-none focus:ring-0 p-0 text-gray-600 cursor-pointer"
+                  >
+                    <option value="name-asc">Name A-Z</option>
+                    <option value="name-desc">Name Z-A</option>
+                    <option value="provider-asc">Provider</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             {/* Models List */}
             <div className="max-h-[320px] overflow-y-auto py-1 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-              {filteredModels.length > 0 ? (
-                filteredModels.map((model) => (
+              {processedModels.length > 0 ? (
+                processedModels.map((model) => (
                   <button
                     key={model.id}
                     onClick={() => {
@@ -122,13 +181,6 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedMo
                           {model.provider}
                         </span>
                       </div>
-                      {model.costInput && (
-                        <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                          <span>In: {model.costInput}</span>
-                          <span>•</span>
-                          <span>Out: {model.costOutput}</span>
-                        </div>
-                      )}
                     </div>
                     {selectedModelId === model.id && (
                       <Check size={16} className="text-orange-500 flex-shrink-0 ml-2" />
@@ -144,8 +196,8 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ models, selectedMo
             
             {/* Footer */}
             <div className="px-3 py-2 bg-gray-50 border-t border-gray-100 text-[10px] text-gray-400 text-center font-medium uppercase tracking-wider flex justify-between items-center">
-              <span>{models.length} Models</span>
-              <span className="flex items-center gap-1"><Info size={10}/> Pricing per 1M tokens</span>
+              <span>{processedModels.length} Models</span>
+              <span className="flex items-center gap-1">Sorted by {sortBy.replace('-', ' ')}</span>
             </div>
           </motion.div>
         )}
