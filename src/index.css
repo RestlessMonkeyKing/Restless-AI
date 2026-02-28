@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+}
+
+/* Custom Scrollbar for Webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 100vh;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced Math Rendering */
+.katex-display {
+  margin: 1.5em 0;
+  padding: 1.5em;
+  background: #fff9f0;
+  border-radius: 1rem;
+  border: 1px solid #ffeeba;
+  box-shadow: 0 4px 6px -1px rgba(255, 165, 0, 0.05);
+  overflow-x: auto;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.katex-display:hover {
+  transform: scale(1.01);
+  box-shadow: 0 10px 15px -3px rgba(255, 165, 0, 0.1);
+}
+
+.katex {
+  font-size: 1.1em;
+  font-family: 'KaTeX_Main', 'Times New Roman', serif;
+}
+
+.katex-display .katex {
+  font-size: 1.5em;
+  color: #2d3748;
+}
+
+.katex-html {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
